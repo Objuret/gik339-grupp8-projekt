@@ -29,19 +29,147 @@ server.listen(3000, () => {
   console.log('Server running on http://localhost:3000');
 });
 
-/* Hantering av GET-requests till endpointen /users */
-server.get('/users', (req, res) => {
-  /* sql-query för att hämta alla users ur databasen. */
-  const sql = 'SELECT * FROM users';
-  /* Anrop till db-objektets funktion .all som används till att hämta upp rader ur en tabell */
+/* Hämta alla kategorier */
+server.get('/categories', (req, res) => {
+  const sql = 'SELECT * FROM categories';
   db.all(sql, (err, rows) => {
-    /* Callbackfunktionen har parametern err för att lagra eventuella fel */
     if (err) {
-      /* Om det finns något i det objektet skickar vi ett svar tillbaka att något gick fel (status 500) och info om vad som gick fel (innehållet i objektet err) */
       res.status(500).send(err);
     } else {
-      /* Annars, om allt gick bra, skickar vi de rader som hämtades upp.  */
       res.send(rows);
+    }
+  });
+});
+
+/* Hämta antalet produkter för en kategori */
+server.get('/categories/:id/count', (req, res) => {
+  const { id } = req.params;
+  const sql = `SELECT COUNT(*) as productCount FROM products WHERE categoryId = ?`;
+
+  db.get(sql, [id], (err, row) => {
+    if (err) {
+      res.status(500).send('Fel vid hämtning av produktantal: ' + err.message);
+    } else {
+      res.send(row);
+    }
+  });
+});
+
+/* Lägg till en ny kategori */
+server.post('/categories', (req, res) => {
+  const { categoryName, color } = req.body;
+  const sql = 'INSERT INTO categories (categoryName, color) VALUES (?, ?)';
+  db.run(sql, [categoryName, color], function (err) {
+    if (err) {
+      res.status(500).send(err);
+    } else {
+      res.send({ id: this.lastID, categoryName, color });
+    }
+  });
+});
+
+/* Ta bort en kategori och dess relaterade produkter */
+server.delete('/categories/:id', (req, res) => {
+  const { id } = req.params;
+
+  const deleteProductsSQL = `DELETE FROM products WHERE categoryId = ?`;
+  const deleteCategorySQL = `DELETE FROM categories WHERE categoryId = ?`;
+
+  db.serialize(() => {
+    db.run(deleteProductsSQL, [id], function (err) {
+      if (err) return res.status(500).send('Fel vid borttagning av produkter: ' + err.message);
+
+      db.run(deleteCategorySQL, [id], function (err) {
+        if (err) return res.status(500).send('Fel vid borttagning av kategori: ' + err.message);
+        res.send('Kategorin och dess produkter har tagits bort.');
+      });
+    });
+  });
+});
+
+/* Uppdatera en kategori */
+server.put('/categories/:id', (req, res) => {
+  const { id } = req.params;
+  const { categoryName, color } = req.body;
+  const sql = `UPDATE categories SET categoryName = ?, color = ? WHERE categoryId = ?`;
+
+  db.run(sql, [categoryName, color, id], function (err) {
+    if (err) return res.status(500).send('Fel vid uppdatering av kategori: ' + err.message);
+    res.send('Kategorin har uppdaterats.');
+  });
+});
+
+/* Hämta alla produkter */
+server.get('/products', (req, res) => {
+  const sql = `
+    SELECT products.productId, products.productName, products.price, categories.categoryName, categories.color
+    FROM products
+    INNER JOIN categories ON products.categoryId = categories.categoryId
+  `;
+  db.all(sql, (err, rows) => {
+    if (err) {
+      res.status(500).send(err);
+    } else {
+      res.send(rows);
+    }
+  });
+});
+
+/* Hämta produkter baserat på kategori */
+server.get('/products/category/:categoryId', (req, res) => {
+  const { categoryId } = req.params;
+  const sql = `
+    SELECT products.productId, products.productName, products.price
+    FROM products
+    WHERE products.categoryId = ?
+  `;
+  db.all(sql, [categoryId], (err, rows) => {
+    if (err) {
+      res.status(500).send(err);
+    } else {
+      res.send(rows);
+    }
+  });
+});
+
+/* Lägg till en ny produkt */
+server.post('/products', (req, res) => {
+  const { productName, price, categoryId } = req.body;
+  const sql = `INSERT INTO products (productName, price, categoryId) VALUES (?, ?, ?)`;
+  db.run(sql, [productName, price, categoryId], function (err) {
+    if (err) {
+      res.status(500).send(err);
+    } else {
+      res.send({ id: this.lastID, productName, price, categoryId });
+    }
+  });
+});
+
+/* Uppdatera en produkt */
+server.put('/products/:id', (req, res) => {
+  const { id } = req.params;
+  const { productName, price, categoryId } = req.body;
+  const sql = `UPDATE products SET productName = ?, price = ?, categoryId = ? WHERE productId = ?`;
+
+  db.run(sql, [productName, price, categoryId, id], (err) => {
+    if (err) {
+      res.status(500).send(err);
+    } else {
+      res.send('Produkten uppdaterades');
+    }
+  });
+});
+
+/* Ta bort en produkt */
+server.delete('/products/:id', (req, res) => {
+  const { id } = req.params;
+  const sql = `DELETE FROM products WHERE productId = ?`;
+
+  db.run(sql, [id], (err) => {
+    if (err) {
+      res.status(500).send(err);
+    } else {
+      res.send('Produkten togs bort');
     }
   });
 });

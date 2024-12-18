@@ -1,8 +1,16 @@
 {
   "editor.tabSize": 2,
   "editor.formatOnSave": true,
-  "editor.wordWrap": "wordWrapColumn",
+  "editor.wordWrap": "off",
+  "prettier.singleAttributePerLine": false,
+  "prettier.htmlWhitespaceSensitivity": "ignore",
+  "prettier.printWidth": 900,
   "html.format.wrapAttributes": "force-aligned",
+  "html.format.preserveNewLines": true,
+  "html.format.wrapLineLength": 0,
   "editor.minimap.maxColumn": 80,
-  "editor.defaultFormatter": "esbenp.prettier-vscode"
+  "editor.defaultFormatter": null,
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
 }
