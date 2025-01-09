@@ -15,12 +15,21 @@ const categorySelect = document.getElementById('categorySelect');
 const categoryNameInput = document.getElementById('categoryName');
 const categoryColorInput = document.getElementById('categoryColor');
 
+//submitknappar och overlay för enable och disable logik
+const productSaveButton = document.querySelector('#productForm button[type="submit"]');
+const categorySaveButton = document.querySelector('#categoryForm button[type="submit"]');
+const productFormOverlay = document.getElementById('productFormOverlay');
+const categoryFormOverlay = document.getElementById('categoryFormOverlay');
+
 let categories = [];
+
+let selectedID = null;
 
 // Huvudfunktion: Hämtar och renderar all data
 async function fetchAllData() {
   await Promise.all([
     fetchData(productsUrl, (products) => {
+      console.log('Fetched products:', products);
       renderProducts(products); // Rendera produkter
     }),
     fetchData(categoriesUrl, (data) => {
@@ -36,7 +45,7 @@ window.addEventListener('load', fetchAllData);
 productForm.addEventListener('submit', (e) => {
   handleSubmit(
     e,
-    productsUrl,
+    productsUrl, // Always use the base URL
     () => ({
       productName: productNameInput.value,
       price: parseFloat(priceInput.value),
@@ -56,6 +65,10 @@ categoryForm.addEventListener('submit', (e) => {
   );
 });
 
+document.getElementById('cancelEditButton').addEventListener('click', () => {
+  clearEditState();
+});
+
 async function fetchData(url, callback) {
   try {
     const response = await fetch(url);
@@ -66,9 +79,9 @@ async function fetchData(url, callback) {
   }
 }
 
-
-// Rendera produkter grupperade efter kategori
+//rendera produkter och gruppera efter kategori
 function renderProducts(products) {
+  console.log('Products data:', products);
   const listContainer = document.getElementById('listContainer');
   listContainer.innerHTML = '';
 
@@ -77,40 +90,47 @@ function renderProducts(products) {
     return;
   }
 
-  // Gruppera produkter efter kategori
-  const groupedProducts = products.reduce((acc, product) => {
-    if (!acc[product.categoryName]) {
-      acc[product.categoryName] = { color: product.color, items: [] };
-    }
-    acc[product.categoryName].items.push(product);
-    return acc;
-  }, {});
+  // Group products by categoryId
+const groupedProducts = products.reduce((acc, product) => {
+  const categoryKey = product.categoryId;
 
-  // Bygg HTML för varje kategori och dess produkter
-  for (const [categoryName, group] of Object.entries(groupedProducts)) {
+  if (!acc[categoryKey]) {
+    acc[categoryKey] = {
+      categoryName: product.categoryName || 'Okänd kategori', // Use categoryName from product
+      color: product.color || 'gray', // Use color from product
+      items: [],
+    };
+  }
+
+  acc[categoryKey].items.push(product);
+  return acc;
+}, {});
+
+  // Build HTML for each category and its products
+  for (const [categoryId, group] of Object.entries(groupedProducts)) {
     const categoryColor = group.color + "-600" || 'gray-200';
     let html = `
       <div class="bg-${categoryColor} p-4 rounded-md mb-4">
-        <!-- Kategorititel med CRUD-knappar -->
+        <!-- Category title with CRUD buttons -->
         <div class="flex justify-between items-center mb-2">
-          <h2 class="text-2xl font-bold">${categoryName}</h2>
+          <h2 class="text-2xl font-bold">${group.categoryName}</h2>
           <div>
-            <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600" onclick="setCurrentCategory('${categoryName}')">Ändra</button>
-            <button class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600" onclick="deleteCategory('${categoryName}')">Ta bort</button>
+            <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600" onclick="handleEdit(${categoryId}, 'category')">Ändra</button>
+            <button class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600" onclick="deleteCategory(${categoryId})">Ta bort</button>
           </div>
         </div>
 
-        <!-- Produktlista för denna kategori -->
+        <!-- Product list for this category -->
         <ul class="flex flex-wrap gap-2">
     `;
 
     group.items.forEach((item) => {
       html += `
-        <li class="bg-${item.color}-200 text-black p-2 rounded-md border border-gray-300 w-1/4">
+        <li class="bg-${group.color}-200 text-black p-2 rounded-md border border-gray-300 w-1/4">
           <h3>${item.productName}</h3>
           <p>Pris: ${item.price} kr</p>
           <div class="flex justify-between mt-2">
-            <button class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600" onclick="setCurrentProduct(${item.productId})">Ändra</button>
+            <button class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600" onclick="handleEdit(${item.productId}, 'product')">Ändra</button>
             <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600" onclick="deleteProduct(${item.productId})">Ta bort</button>
           </div>
         </li>`;
@@ -121,24 +141,124 @@ function renderProducts(products) {
   }
 }
 
-// Sätt vald produkt i formuläret
-async function setCurrentProduct(id) {
-  await fetchData(`${url}/${id}`, (product) => {
-    document.getElementById('productName').value = product.productName;
-    document.getElementById('price').value = product.price;
-    document.getElementById('categorySelect').value = product.categoryId;
+async function handleEdit(id, type) {
+  const url = type === 'product' ? `${productsUrl}/${id}` : `${categoriesUrl}/${id}`;
+    const response = await fetch(url);
 
-    localStorage.setItem('currentId', product.productId);
-  });
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ${type} with ID ${id}`);
+    }
+
+    const data = await response.json();
+
+    if (type === 'product') {
+      // Populate product form fields
+      productNameInput.value = data.productName;
+      priceInput.value = data.price;
+      categorySelect.value = data.categoryId;
+      categorySaveButton.disabled = true;
+      categoryFormOverlay.classList.remove('hidden');
+      categorySaveButton.classList.remove('bg-green-500', 'hover:bg-green-600');
+      categorySaveButton.classList.add('bg-gray-400');
+    } else if (type === 'category') {
+      // Populate category form fields
+      categoryNameInput.value = data.categoryName;
+      categoryColorInput.value = data.color;
+      productSaveButton.disabled = true;
+      productFormOverlay.classList.remove('hidden');
+      productSaveButton.classList.remove('bg-green-500', 'hover:bg-green-600');
+      productSaveButton.classList.add('bg-gray-400');
+    }
+  selectedID = id; // Set the ID for the item being edited
+  document.getElementById('cancelEditButton').classList.remove('hidden'); // Show cancel button
+}
+
+function clearEditState() {
+  selectedID = null; // Clear selectedID
+  document.getElementById('cancelEditButton').classList.add('hidden'); // Hide cancel button
+  document.getElementById('productForm').reset();
+  document.getElementById('categoryForm').reset();
+  productSaveButton.disabled = false;
+  categorySaveButton.disabled = false;
+  productSaveButton.classList.remove('bg-gray-400');
+  productSaveButton.classList.add('bg-green-500', 'hover:bg-green-600');
+  categorySaveButton.classList.remove('bg-gray-400');
+  categorySaveButton.classList.add('bg-green-500', 'hover:bg-green-600');
+  productFormOverlay.classList.add('hidden');
+  categoryFormOverlay.classList.add('hidden');
+}
+
+
+
+function showFeedbackMessage(message) {
+  // Check if a modal already exists
+  if (document.getElementById('feedbackModal')) {
+    hideFeedbackMessage(); // Clean up old modal if it exists
+  }
+
+  // Create modal container
+  const modal = document.createElement('div');
+  modal.id = 'feedbackModal';
+  modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 opacity-100';
+
+  // Create modal content
+  const modalContent = document.createElement('div');
+  modalContent.className = 'bg-white rounded-md p-4 shadow-lg text-center max-w-sm w-full relative';
+  modalContent.innerHTML = `
+    <p class="text-gray-700 text-lg">${message}</p>
+    <button
+      class="mt-4 bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
+      onclick="hideFeedbackMessage()"
+    >
+      OK
+    </button>
+  `;
+
+  // Append modal content to modal container
+  modal.appendChild(modalContent);
+  document.body.appendChild(modal);
+
+  let timeout; // Declare timeout variable
+
+  // Function to start the timeout
+  const startTimeout = () => {
+    timeout = setTimeout(() => {
+      modal.classList.add('opacity-0', 'transition-opacity', 'duration-500'); // Fade out
+      setTimeout(() => modal.remove(), 500); // Remove after fade-out completes
+    }, 1000); // 2-second delay
+  };
+
+  // Function to clear the timeout and reset visibility
+  const clearTimeoutHandler = () => {
+    clearTimeout(timeout); // Clear the timeout
+    modal.classList.remove('opacity-0', 'transition-opacity', 'duration-300'); // Ensure the modal remains fully visible
+  };
+
+  // Start the timeout initially
+  startTimeout();
+
+  // Add event listeners for hover behavior on the modal content
+  modalContent.addEventListener('mouseenter', clearTimeoutHandler); // Pause timer on hover
+  modalContent.addEventListener('mouseleave', startTimeout); // Resume timer when mouse leaves
+}
+
+function hideFeedbackMessage() {
+  const modal = document.getElementById('feedbackModal');
+  if (modal) {
+    modal.classList.add('opacity-0', 'transition-opacity', 'duration-300'); // Fade out
+    setTimeout(() => modal.remove(), 300); // Remove after fade-out
+  }
 }
 
 // Ta bort en produkt
 async function deleteProduct(id) {
   try {
     await fetch(`${productsUrl}/${id}`, { method: 'DELETE' });
-    fetchAllData
+    await fetchAllData();
+    showFeedbackMessage('Produkten togs bort!');
   } catch (error) {
     console.error('Kunde inte ta bort produkten:', error);
+    showFeedbackMessage('Ett fel uppstod vid borttagning av produkten.');
   }
 }
 
@@ -157,15 +277,6 @@ function updateCategoryDropdown(categories) {
   });
 }
 
-// Fyll i formuläret för redigering av kategori
-function setCurrentCategory(id) {
-  fetchData(`${categoriesUrl}/${id}`, (category) => {
-    document.getElementById('categoryName').value = category.categoryName;
-    document.getElementById('categoryColor').value = category.color;
-    localStorage.setItem('currentCategoryId', category.categoryId);
-  });
-}
-
 async function deleteCategory(id) {
   try {
     // Hämta antalet produkter i kategorin
@@ -179,11 +290,12 @@ async function deleteCategory(id) {
     if (confirmation) {
       // Om användaren bekräftar, ta bort kategorin
       await fetch(`http://localhost:3000/categories/${id}`, { method: 'DELETE' });
-      alert('Kategorin och dess produkter har tagits bort.');
-      fetchAllData
+      showFeedbackMessage('Kategorin och dess produkter togs bort!');
+      await fetchAllData();
     }
   } catch (error) {
     console.error('Fel vid borttagning av kategori:', error);
+    showFeedbackMessage('Ett fel uppstod vid borttagning.');
   }
 }
 
@@ -195,7 +307,7 @@ async function handleSubmit(e, url, dataBuilder) {
     const dataObject = dataBuilder();
 
     // Kontrollera om det är en ny eller befintlig post
-    const id = localStorage.getItem('currentId');
+    const id = selectedID ? parseInt(selectedID, 10) : null;
     const method = id ? 'PUT' : 'POST';
     const endpoint = id ? `${url}/${id}` : url;
 
@@ -212,8 +324,15 @@ async function handleSubmit(e, url, dataBuilder) {
     await fetchAllData();
 
     // Återställ formulär och localStorage
+
     e.target.reset();
-    localStorage.removeItem('currentId');
+    selectedID = null;
+
+    // Avgör vilken resurstyp som hanterades baserat på url
+    const resourceType = url.includes('products') ? 'Produkten' : 'Kategorin';
+    const action = id ? 'uppdaterades' : 'skapades';
+
+    showFeedbackMessage(`${resourceType} ${action} framgångsrikt!`);
   } catch (error) {
     console.error('Fel vid formulärsubmit:', error.message);
   }

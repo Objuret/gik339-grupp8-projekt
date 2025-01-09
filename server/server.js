@@ -41,6 +41,19 @@ server.get('/categories', (req, res) => {
   });
 });
 
+//Hämta en specifik kategori
+server.get('/categories/:id', (req, res) => {
+  const { id } = req.params;
+  const sql = `SELECT * FROM categories WHERE categoryId = ?`;
+  db.get(sql, [id], (err, row) => {
+    if (err) {
+      res.status(500).send(err);
+    } else {
+      res.json(row);
+    }
+  });
+});
+
 /* Hämta antalet produkter för en kategori */
 server.get('/categories/:id/count', (req, res) => {
   const { id } = req.params;
@@ -102,7 +115,7 @@ server.put('/categories/:id', (req, res) => {
 /* Hämta alla produkter */
 server.get('/products', (req, res) => {
   const sql = `
-    SELECT products.productId, products.productName, products.price, categories.categoryName, categories.color
+    SELECT products.productId, products.productName, products.price, categories.categoryName, categories.color, categories.categoryId
     FROM products
     INNER JOIN categories ON products.categoryId = categories.categoryId
   `;
@@ -128,6 +141,19 @@ server.get('/products/category/:categoryId', (req, res) => {
       res.status(500).send(err);
     } else {
       res.send(rows);
+    }
+  });
+});
+
+// Hämta specifik produkt
+server.get('/products/:id', (req, res) => {
+  const { id } = req.params;
+  const sql = `SELECT * FROM products WHERE productId = ?`;
+  db.get(sql, [id], (err, row) => {
+    if (err) {
+      res.status(500).send(err);
+    } else {
+      res.json(row);
     }
   });
 });
@@ -170,78 +196,6 @@ server.delete('/products/:id', (req, res) => {
       res.status(500).send(err);
     } else {
       res.send('Produkten togs bort');
-    }
-  });
-});
-
-server.get('/users/:id', (req, res) => {
-  const id = req.params.id;
-
-  const sql = `SELECT * FROM users WHERE id=${id}`;
-
-  db.all(sql, (err, rows) => {
-    if (err) {
-      res.status(500).send(err);
-    } else {
-      res.send(rows[0]);
-    }
-  });
-});
-
-server.post('/users', (req, res) => {
-  const user = req.body;
-  const sql = `INSERT INTO users(firstName, lastName, username, color) VALUES (?,?,?,?)`;
-
-  db.run(sql, Object.values(user), (err) => {
-    if (err) {
-      console.log(err);
-      res.status(500).send(err);
-    } else {
-      res.send('Användaren sparades');
-    }
-  });
-});
-
-server.put('/users', (req, res) => {
-  const bodyData = req.body;
-
-  const id = bodyData.id;
-  const user = {
-    firstName: bodyData.firstName,
-    lastName: bodyData.lastName,
-    username: bodyData.username,
-    color: bodyData.color
-  };
-
-  let updateString = '';
-  const columnsArray = Object.keys(user);
-  columnsArray.forEach((column, i) => {
-    updateString += `${column}="${user[column]}"`;
-    if (i !== columnsArray.length - 1) updateString += ',';
-  });
-  const sql = `UPDATE users SET ${updateString} WHERE id=${id}`;
-
-  db.run(sql, (err) => {
-    if (err) {
-      console.log(err);
-      res.status(500).send(err);
-    } else {
-      res.send('Användaren uppdaterades');
-    }
-  });
-  //UPDATE users SET firstName="Mikaela",lastName="Hedberg" WHERE id=1
-});
-
-server.delete('/users/:id', (req, res) => {
-  const id = req.params.id;
-  const sql = `DELETE FROM users WHERE id = ${id}`;
-
-  db.run(sql, (err) => {
-    if (err) {
-      console.log(err);
-      res.status(500).send(err);
-    } else {
-      res.send('Användaren borttagen');
     }
   });
 });
