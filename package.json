@@ -2,5 +2,15 @@
   "dependencies": {
     "express": "^4.21.2",
     "sqlite3": "^5.1.7"
-  }
+  },
+  "name": "gik339-grupp8-projekt",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
 }

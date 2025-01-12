@@ -13,7 +13,9 @@ const categorySelect = document.getElementById('categorySelect');
 
 // Kategoriformulärs inputs
 const categoryNameInput = document.getElementById('categoryName');
-const categoryColorInput = document.getElementById('categoryColor');
+const categoryColorInput = document.getElementById("categoryColor");
+
+const colorOptions = ["red", "blue", "green", "yellow", "purple", "pink", "gray", "black", "white"];
 
 //submitknappar och overlay för enable och disable logik
 const productSaveButton = document.querySelector('#productForm button[type="submit"]');
@@ -24,6 +26,22 @@ const categoryFormOverlay = document.getElementById('categoryFormOverlay');
 let categories = [];
 
 let selectedID = null;
+
+// Load Initial Data
+window.addEventListener("load", () => {
+  populateColorDropdown();
+  fetchAllData();
+});
+
+function populateColorDropdown() {
+  categoryColorInput.innerHTML = `<option value="" disabled selected>Select a color</option>`;
+  colorOptions.forEach((color) => {
+    const option = document.createElement("option");
+    option.value = color;
+    option.textContent = color.charAt(0).toUpperCase() + color.slice(1);
+    categoryColorInput.appendChild(option);
+  });
+}
 
 // Huvudfunktion: Hämtar och renderar all data
 async function fetchAllData() {
@@ -112,29 +130,52 @@ const groupedProducts = products.reduce((acc, product) => {
     let html = `
       <div class="bg-${categoryColor} p-4 rounded-md mb-4">
         <!-- Category title with CRUD buttons -->
-        <div class="flex justify-between items-center mb-2">
-          <h2 class="text-2xl font-bold">${group.categoryName}</h2>
-          <div>
-            <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600" onclick="handleEdit(${categoryId}, 'category')">Ändra</button>
-            <button class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600" onclick="deleteCategory(${categoryId})">Ta bort</button>
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
+          <h2 class="text-2xl md:text-xl font-bold">${group.categoryName}</h2>
+          <div class="flex gap-2">
+            <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 w-full md:w-auto" onclick="handleEdit(${categoryId}, 'category')">Edit</button>
+            <button class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 w-full md:w-auto" onclick="deleteCategory(${categoryId})">Delete</button>
           </div>
         </div>
-
+        
         <!-- Product list for this category -->
         <ul class="flex flex-wrap gap-2">
     `;
+    //   <div class="bg-${categoryColor} p-4 rounded-md mb-4">
+    //     <!-- Category title with CRUD buttons -->
+    //     <div class="flex justify-between items-center mb-2">
+    //       <h2 class="text-2xl font-bold">${group.categoryName}</h2>
+    //       <div>
+    //         <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600" onclick="handleEdit(${categoryId}, 'category')">Ändra</button>
+    //         <button class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600" onclick="deleteCategory(${categoryId})">Ta bort</button>
+    //       </div>
+    //     </div>
+
+    //     <!-- Product list for this category -->
+    //     <ul class="flex flex-wrap gap-2">
+    // `;
 
     group.items.forEach((item) => {
       html += `
-        <li class="bg-${group.color}-200 text-black p-2 rounded-md border border-gray-300 w-1/4">
-          <h3>${item.productName}</h3>
-          <p>Pris: ${item.price} kr</p>
-          <div class="flex justify-between mt-2">
-            <button class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600" onclick="handleEdit(${item.productId}, 'product')">Ändra</button>
-            <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600" onclick="deleteProduct(${item.productId})">Ta bort</button>
-          </div>
-        </li>`;
-    });
+      <li class="bg-${group.color}-200 text-black p-4 rounded-md border border-gray-300 w-full sm:w-1/2 md:w-1/3 lg:w-1/4">
+      <h3 class="font-semibold">${item.productName}</h3>
+      <p>Price: ${item.price} kr</p>
+      <div class="flex flex-col sm:flex-row justify-between mt-2 gap-2">
+        <button class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 w-full sm:w-auto" onclick="handleEdit(${item.productId}, 'product')">Edit</button>
+        <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 w-full sm:w-auto" onclick="deleteProduct(${item.productId})">Delete</button>
+      </div>
+      </li>`;
+  });
+    //   html += `
+    //     <li class="bg-${group.color}-200 text-black p-2 rounded-md border border-gray-300 w-1/4">
+    //       <h3>${item.productName}</h3>
+    //       <p>Pris: ${item.price} kr</p>
+    //       <div class="flex justify-between mt-2">
+    //         <button class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600" onclick="handleEdit(${item.productId}, 'product')">Ändra</button>
+    //         <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600" onclick="deleteProduct(${item.productId})">Ta bort</button>
+    //       </div>
+    //     </li>`;
+    // });
 
     html += `</ul></div>`;
     listContainer.insertAdjacentHTML('beforeend', html);
