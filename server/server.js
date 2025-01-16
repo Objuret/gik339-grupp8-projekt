@@ -1,10 +1,10 @@
 /* Importera npm-paket sqlite3 med hjälp av require() och lagrar i variabeln sqlite */
-const sqlite = require('sqlite3').verbose();
+const sqlite = require("sqlite3").verbose();
 /* Skapar ny koppling till databas-fil som skapades tidigare. */
-const db = new sqlite.Database('./gik339.db');
+const db = new sqlite.Database("./gik339.db");
 
 /* Importerar npm-paket express och lagrar i variabeln express */
-const express = require('express');
+const express = require("express");
 /* Skapar server med hjälp av express */
 const server = express();
 
@@ -16,9 +16,9 @@ server
   .use(express.urlencoded({ extended: false }))
   .use((req, res, next) => {
     /* Headers för alla förfrågningar. Hanterar regler för CORS (vilka klienter som får anropa vår server och hur.) */
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Headers', '*');
-    res.header('Access-Control-Allow-Methods', '*');
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "*");
+    res.header("Access-Control-Allow-Methods", "*");
     /* Säger åt servern att fortsätta processa förfrågan */
     next();
   });
@@ -26,12 +26,12 @@ server
 /* Startar servern på port 3000 */
 server.listen(3000, () => {
   /* Meddelande för feedback att servern körs */
-  console.log('Server running on http://localhost:3000');
+  console.log("Server running on http://localhost:3000");
 });
 
 /* Hämta alla kategorier */
-server.get('/categories', (req, res) => {
-  const sql = 'SELECT * FROM categories';
+server.get("/categories", (req, res) => {
+  const sql = "SELECT * FROM categories";
   db.all(sql, (err, rows) => {
     if (err) {
       res.status(500).send(err);
@@ -42,7 +42,7 @@ server.get('/categories', (req, res) => {
 });
 
 //Hämta en specifik kategori
-server.get('/categories/:id', (req, res) => {
+server.get("/categories/:id", (req, res) => {
   const { id } = req.params;
   const sql = `SELECT * FROM categories WHERE categoryId = ?`;
   db.get(sql, [id], (err, row) => {
@@ -55,13 +55,13 @@ server.get('/categories/:id', (req, res) => {
 });
 
 /* Hämta antalet produkter för en kategori */
-server.get('/categories/:id/count', (req, res) => {
+server.get("/categories/:id/count", (req, res) => {
   const { id } = req.params;
   const sql = `SELECT COUNT(*) as productCount FROM products WHERE categoryId = ?`;
 
   db.get(sql, [id], (err, row) => {
     if (err) {
-      res.status(500).send('Fel vid hämtning av produktantal: ' + err.message);
+      res.status(500).send("Fel vid hämtning av produktantal: " + err.message);
     } else {
       res.send(row);
     }
@@ -69,9 +69,9 @@ server.get('/categories/:id/count', (req, res) => {
 });
 
 /* Lägg till en ny kategori */
-server.post('/categories', (req, res) => {
+server.post("/categories", (req, res) => {
   const { categoryName, color } = req.body;
-  const sql = 'INSERT INTO categories (categoryName, color) VALUES (?, ?)';
+  const sql = "INSERT INTO categories (categoryName, color) VALUES (?, ?)";
   db.run(sql, [categoryName, color], function (err) {
     if (err) {
       res.status(500).send(err);
@@ -82,7 +82,7 @@ server.post('/categories', (req, res) => {
 });
 
 /* Ta bort en kategori och dess relaterade produkter */
-server.delete('/categories/:id', (req, res) => {
+server.delete("/categories/:id", (req, res) => {
   const { id } = req.params;
 
   const deleteProductsSQL = `DELETE FROM products WHERE categoryId = ?`;
@@ -90,30 +90,30 @@ server.delete('/categories/:id', (req, res) => {
 
   db.serialize(() => {
     db.run(deleteProductsSQL, [id], function (err) {
-      if (err) return res.status(500).send('Fel vid borttagning av produkter: ' + err.message);
+      if (err) return res.status(500).send("Fel vid borttagning av produkter: " + err.message);
 
       db.run(deleteCategorySQL, [id], function (err) {
-        if (err) return res.status(500).send('Fel vid borttagning av kategori: ' + err.message);
-        res.send('Kategorin och dess produkter har tagits bort.');
+        if (err) return res.status(500).send("Fel vid borttagning av kategori: " + err.message);
+        res.send("Kategorin och dess produkter har tagits bort.");
       });
     });
   });
 });
 
 /* Uppdatera en kategori */
-server.put('/categories/:id', (req, res) => {
+server.put("/categories/:id", (req, res) => {
   const { id } = req.params;
   const { categoryName, color } = req.body;
   const sql = `UPDATE categories SET categoryName = ?, color = ? WHERE categoryId = ?`;
 
   db.run(sql, [categoryName, color, id], function (err) {
-    if (err) return res.status(500).send('Fel vid uppdatering av kategori: ' + err.message);
-    res.send('Kategorin har uppdaterats.');
+    if (err) return res.status(500).send("Fel vid uppdatering av kategori: " + err.message);
+    res.send("Kategorin har uppdaterats.");
   });
 });
 
 /* Hämta alla produkter */
-server.get('/products', (req, res) => {
+server.get("/products", (req, res) => {
   const sql = `
     SELECT products.productId, products.productName, products.price, categories.categoryName, categories.color, categories.categoryId
     FROM products
@@ -129,7 +129,7 @@ server.get('/products', (req, res) => {
 });
 
 /* Hämta produkter baserat på kategori */
-server.get('/products/category/:categoryId', (req, res) => {
+server.get("/products/category/:categoryId", (req, res) => {
   const { categoryId } = req.params;
   const sql = `
     SELECT products.productId, products.productName, products.price
@@ -146,7 +146,7 @@ server.get('/products/category/:categoryId', (req, res) => {
 });
 
 // Hämta specifik produkt
-server.get('/products/:id', (req, res) => {
+server.get("/products/:id", (req, res) => {
   const { id } = req.params;
   const sql = `SELECT * FROM products WHERE productId = ?`;
   db.get(sql, [id], (err, row) => {
@@ -159,7 +159,7 @@ server.get('/products/:id', (req, res) => {
 });
 
 /* Lägg till en ny produkt */
-server.post('/products', (req, res) => {
+server.post("/products", (req, res) => {
   const { productName, price, categoryId } = req.body;
   const sql = `INSERT INTO products (productName, price, categoryId) VALUES (?, ?, ?)`;
   db.run(sql, [productName, price, categoryId], function (err) {
@@ -172,7 +172,7 @@ server.post('/products', (req, res) => {
 });
 
 /* Uppdatera en produkt */
-server.put('/products/:id', (req, res) => {
+server.put("/products/:id", (req, res) => {
   const { id } = req.params;
   const { productName, price, categoryId } = req.body;
   const sql = `UPDATE products SET productName = ?, price = ?, categoryId = ? WHERE productId = ?`;
@@ -181,13 +181,13 @@ server.put('/products/:id', (req, res) => {
     if (err) {
       res.status(500).send(err);
     } else {
-      res.send('Produkten uppdaterades');
+      res.send("Produkten uppdaterades");
     }
   });
 });
 
 /* Ta bort en produkt */
-server.delete('/products/:id', (req, res) => {
+server.delete("/products/:id", (req, res) => {
   const { id } = req.params;
   const sql = `DELETE FROM products WHERE productId = ?`;
 
@@ -195,7 +195,7 @@ server.delete('/products/:id', (req, res) => {
     if (err) {
       res.status(500).send(err);
     } else {
-      res.send('Produkten togs bort');
+      res.send("Produkten togs bort");
     }
   });
 });

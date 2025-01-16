@@ -6,12 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="shortcut icon" href="#" />
-    <title>Product Registration</title>
+    <title>Produkt Registrering</title>
   </head>
 
   <body class="min-h-screen bg-gradient-to-b from-slate-800 to-slate-700 text-white">
     <header class="mt-10 text-center">
-      <h1 class="text-3xl md:text-4xl lg:text-5xl">Product Registration</h1>
+      <h1 class="text-3xl md:text-4xl lg:text-5xl">Produkt Registrering</h1>
     </header>
 
     <main class="mt-10 px-4 md:px-10 lg:px-20">
@@ -19,51 +19,51 @@
         <!-- Category Form -->
         <form id="categoryForm" class="relative my-5 mx-2 bg-white/25 p-4 rounded-lg">
           <div id="categoryFormOverlay" class="overlay absolute overflow-hidden inset-0 bg-black bg-opacity-25 z-10 rounded-lg hidden"></div>
-          <h2 class="text-xl md:text-2xl font-bold mb-4 text-center">Manage Categories</h2>
+          <h2 class="text-xl md:text-2xl font-bold mb-4 text-center">Hantera Kategorier</h2>
           <div class="flex flex-col gap-6">
             <label class="flex flex-col">
-              Category Name:
+              Kategori:
               <input type="text" id="categoryName" class="p-2 rounded-md text-black" required />
             </label>
 
             <label class="flex flex-col">
-              Color:
+              Färg:
               <select id="categoryColor" class="p-2 rounded-md text-black" required></select>
             </label>
           </div>
 
           <div class="mt-6 flex gap-4 justify-end">
-            <button type="reset" class="bg-gray-300 text-black px-4 py-2 rounded-md hover:bg-gray-400">Reset</button>
-            <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">Save</button>
+            <button type="reset" class="bg-gray-300 text-black px-4 py-2 rounded-md hover:bg-gray-400">Rensa</button>
+            <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">Spara</button>
           </div>
         </form>
 
         <!-- Product Form -->
         <form id="productForm" class="relative my-5 mx-2 bg-white/25 p-4 rounded-lg">
           <div id="productFormOverlay" class="overlay absolute overflow-hidden inset-0 bg-black bg-opacity-25 z-10 rounded-lg hidden"></div>
-          <h2 class="text-xl md:text-2xl font-bold mb-4 text-center">Register Product</h2>
+          <h2 class="text-xl md:text-2xl font-bold mb-4 text-center">Hantera Produkter</h2>
           <div class="flex flex-col gap-6">
             <label class="flex flex-col">
-              Product Name:
+              Produkt:
               <input type="text" id="productName" class="p-2 rounded-md text-black" required />
             </label>
 
             <label class="flex flex-col">
-              Price:
+              Pris:
               <input type="number" id="price" step="0.01" class="p-2 rounded-md text-black" required />
             </label>
 
             <label class="flex flex-col">
-              Category:
+              Kategori:
               <select id="categorySelect" class="p-2 rounded-md text-black" required>
-                <option value="" disabled selected>Select a category</option>
+                <option value="" disabled selected>Välj en kategori</option>
               </select>
             </label>
           </div>
 
           <div class="mt-6 flex gap-4 justify-end">
-            <button type="reset" class="bg-gray-300 text-black px-4 py-2 rounded-md hover:bg-gray-400">Reset</button>
-            <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">Save</button>
+            <button type="reset" class="bg-gray-300 text-black px-4 py-2 rounded-md hover:bg-gray-400">Rensa</button>
+            <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">Spara</button>
           </div>
         </form>
         <button type="cancelEdit" id="cancelEditButton" class="hidden bg-red-800 text-white mx-2 px-4 py-2 rounded-md hover:bg-green-600">Avbryt</button>

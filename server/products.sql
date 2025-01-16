@@ -4,7 +4,6 @@ CREATE TABLE IF NOT EXISTS categories (
     categoryName TEXT NOT NULL,
     color TEXT NOT NULL
 );
-
 DROP TABLE IF EXISTS products;
 CREATE TABLE IF NOT EXISTS products (
     productId INTEGER PRIMARY KEY AUTOINCREMENT,

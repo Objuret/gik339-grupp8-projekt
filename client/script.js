@@ -1,6 +1,6 @@
 //const url = 'http://localhost:3000/users';
-const productsUrl = "http://localhost:3000/products";
-const categoriesUrl = "http://localhost:3000/categories";
+const productsUrl = "http://localhost:3000/products"; //Hantera produkter via API
+const categoriesUrl = "http://localhost:3000/categories"; //Hanterar kategorier via API
 
 // Variabler för formulär och element
 const productForm = document.getElementById("productForm");
@@ -20,26 +20,29 @@ const colorOptions = ["red", "blue", "green", "yellow", "purple", "pink", "gray"
 //submitknappar och overlay för enable och disable logik
 const productSaveButton = document.querySelector('#productForm button[type="submit"]');
 const categorySaveButton = document.querySelector('#categoryForm button[type="submit"]');
+//Element för att visa ett överlägg som indikerar att formulär är inaktiverade.
 const productFormOverlay = document.getElementById("productFormOverlay");
 const categoryFormOverlay = document.getElementById("categoryFormOverlay");
 
+//Global variabel för lagring av kategorier
 let categories = [];
-
+//Global variabel för att hantera valda ID:n
 let selectedID = null;
 
-// Load Initial Data
+//Ladda initial data när sidan laddas
 window.addEventListener("load", () => {
-  populateColorDropdown();
-  fetchAllData();
+  populateColorDropdown(); //Fyll dropdown-menyn för färger.
+  fetchAllData(); //Hämta produkter och kategorier
 });
 
+//Funktion som fyller färgdropdown med tillgängliga alternativ
 function populateColorDropdown() {
-  categoryColorInput.innerHTML = `<option value="" disabled selected>Select a color</option>`;
+  categoryColorInput.innerHTML = `<option value="" disabled selected>Välj en färg</option>`;
   colorOptions.forEach((color) => {
-    const option = document.createElement("option");
-    option.value = color;
-    option.textContent = color.charAt(0).toUpperCase() + color.slice(1);
-    categoryColorInput.appendChild(option);
+    const option = document.createElement("option"); //Skapar en ny option
+    option.value = color; //Sätter värdet till färg
+    option.textContent = color.charAt(0).toUpperCase() + color.slice(1); //Gör första bokstaven versal
+    categoryColorInput.appendChild(option); //Lägger till i dropdown menyn
   });
 }
 
@@ -47,8 +50,8 @@ function populateColorDropdown() {
 async function fetchAllData() {
   await Promise.all([
     fetchData(productsUrl, (products) => {
-      console.log("Fetched products:", products);
-      renderProducts(products); // Rendera produkter
+      console.log("Fetched products:", products); // Logga hämtade produkter
+      renderProducts(products); // Rendera produkter i gränssnittet
     }),
     fetchData(categoriesUrl, (data) => {
       categories = data; // Spara kategorier i global variabel
@@ -57,19 +60,16 @@ async function fetchAllData() {
   ]);
 }
 
+//Säkerställ att data hämtas via sidladdning
 window.addEventListener("load", fetchAllData);
 
 // Event Listeners
 productForm.addEventListener("submit", (e) => {
-  handleSubmit(
-    e,
-    productsUrl, // Always use the base URL
-    () => ({
-      productName: productNameInput.value,
-      price: parseFloat(priceInput.value),
-      categoryId: parseInt(categorySelect.value),
-    })
-  );
+  handleSubmit(e, productsUrl, () => ({
+    productName: productNameInput.value,
+    price: parseFloat(priceInput.value),
+    categoryId: parseInt(categorySelect.value),
+  }));
 });
 
 categoryForm.addEventListener("submit", (e) => {
@@ -104,14 +104,14 @@ function renderProducts(products) {
     return;
   }
 
-  // Group products by categoryId
+  // Gruppera produkter efter kategoriId
   const groupedProducts = products.reduce((acc, product) => {
     const categoryKey = product.categoryId;
 
     if (!acc[categoryKey]) {
       acc[categoryKey] = {
-        categoryName: product.categoryName || "Okänd kategori", // Use categoryName from product
-        color: product.color || "gray", // Use color from product
+        categoryName: product.categoryName || "Okänd kategori", // Använd kategorinamn från produkt
+        color: product.color || "gray", // Använd färg från produkten
         items: [],
       };
     }
@@ -120,7 +120,7 @@ function renderProducts(products) {
     return acc;
   }, {});
 
-  // Build HTML for each category and its products
+  // Bygg HTML för varje kategori och dess produkter
   for (const [categoryId, group] of Object.entries(groupedProducts)) {
     const categoryColor = group.color + "-600" || "gray-200";
     let html = `
@@ -129,8 +129,8 @@ function renderProducts(products) {
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
           <h2 class="text-2xl md:text-xl font-bold">${group.categoryName}</h2>
           <div class="flex gap-2">
-            <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 w-full md:w-auto" onclick="handleEdit(${categoryId}, 'category')">Edit</button>
-            <button class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 w-full md:w-auto" onclick="deleteCategory(${categoryId})">Delete</button>
+            <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 w-full md:w-auto" onclick="handleEdit(${categoryId}, 'category')">Redigera</button>
+            <button class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 w-full md:w-auto" onclick="deleteCategory(${categoryId})">Radera</button>
           </div>
         </div>
         
@@ -138,19 +138,17 @@ function renderProducts(products) {
         <ul class="flex flex-wrap gap-2">
     `;
 
-
     group.items.forEach((item) => {
       html += `
       <li class="bg-${group.color}-200 text-black p-4 rounded-md border border-gray-300 w-full sm:w-1/2 md:w-1/3 lg:w-1/4">
       <h3 class="font-semibold">${item.productName}</h3>
-      <p>Price: ${item.price} kr</p>
+      <p>Pris: ${item.price} kr</p>
       <div class="flex flex-col sm:flex-row justify-between mt-2 gap-2">
-        <button class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 w-full sm:w-auto" onclick="handleEdit(${item.productId}, 'product')">Edit</button>
-        <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 w-full sm:w-auto" onclick="deleteProduct(${item.productId})">Delete</button>
+        <button class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 w-full sm:w-auto" onclick="handleEdit(${item.productId}, 'product')">Redigera</button>
+        <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 w-full sm:w-auto" onclick="deleteProduct(${item.productId})">Radera</button>
       </div>
       </li>`;
     });
-
 
     html += `</ul></div>`;
     listContainer.insertAdjacentHTML("beforeend", html);
@@ -168,7 +166,7 @@ async function handleEdit(id, type) {
   const data = await response.json();
 
   if (type === "product") {
-    // Populate product form fields
+    // Fyll i produktformulärfält
     productNameInput.value = data.productName;
     priceInput.value = data.price;
     categorySelect.value = data.categoryId;
@@ -177,7 +175,7 @@ async function handleEdit(id, type) {
     categorySaveButton.classList.remove("bg-green-500", "hover:bg-green-600");
     categorySaveButton.classList.add("bg-gray-400");
   } else if (type === "category") {
-    // Populate category form fields
+    // Fyll i kategoriformulärfält
     categoryNameInput.value = data.categoryName;
     categoryColorInput.value = data.color;
     productSaveButton.disabled = true;
@@ -185,13 +183,13 @@ async function handleEdit(id, type) {
     productSaveButton.classList.remove("bg-green-500", "hover:bg-green-600");
     productSaveButton.classList.add("bg-gray-400");
   }
-  selectedID = id; // Set the ID for the item being edited
-  document.getElementById("cancelEditButton").classList.remove("hidden"); // Show cancel button
+  selectedID = id; // Ställ in ID för objektet som ska redigeras
+  document.getElementById("cancelEditButton").classList.remove("hidden"); // Visa avbryt-knappen
 }
 
 function clearEditState() {
-  selectedID = null; // Clear selectedID
-  document.getElementById("cancelEditButton").classList.add("hidden"); // Hide cancel button
+  selectedID = null; // Rensa valt ID
+  document.getElementById("cancelEditButton").classList.add("hidden"); // Dölj avbryt-knapp
   document.getElementById("productForm").reset();
   document.getElementById("categoryForm").reset();
   productSaveButton.disabled = false;
@@ -205,17 +203,17 @@ function clearEditState() {
 }
 
 function showFeedbackMessage(message) {
-  // Check if a modal already exists
+  // Kontrollera om en modal redan finns
   if (document.getElementById("feedbackModal")) {
-    hideFeedbackMessage(); // Clean up old modal if it exists
+    hideFeedbackMessage(); // Rensa upp gammal modal om den finns
   }
 
-  // Create modal container
+  // Skapa modal container
   const modal = document.createElement("div");
   modal.id = "feedbackModal";
   modal.className = "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 opacity-100";
 
-  // Create modal content
+  // Skapa modal content
   const modalContent = document.createElement("div");
   modalContent.className = "bg-white rounded-md p-4 shadow-lg text-center max-w-sm w-full relative";
   modalContent.innerHTML = `
@@ -229,39 +227,39 @@ function showFeedbackMessage(message) {
   `;
   clearEditState();
 
-  // Append modal content to modal container
+  // Lägg till modalt innehåll till modal behållare
   modal.appendChild(modalContent);
   document.body.appendChild(modal);
 
-  let timeout; // Declare timeout variable
+  let timeout; // Deklarera timeout-variabel
 
-  // Function to start the timeout
+  // Funktion för att starta timeout
   const startTimeout = () => {
     timeout = setTimeout(() => {
-      modal.classList.add("opacity-0", "transition-opacity", "duration-500"); // Fade out
-      setTimeout(() => modal.remove(), 500); // Remove after fade-out completes
-    }, 1000); // 2-second delay
+      modal.classList.add("opacity-0", "transition-opacity", "duration-500"); // Tona ut
+      setTimeout(() => modal.remove(), 500); // Ta bort efter att uttoningen är klar
+    }, 1000); // 2 sekunders fördröjning
   };
 
-  // Function to clear the timeout and reset visibility
+  // Funktion för att rensa timern
   const clearTimeoutHandler = () => {
-    clearTimeout(timeout); // Clear the timeout
-    modal.classList.remove("opacity-0", "transition-opacity", "duration-300"); // Ensure the modal remains fully visible
+    clearTimeout(timeout); // Rensa timeouten
+    modal.classList.remove("opacity-0", "transition-opacity", "duration-300");
   };
 
-  // Start the timeout initially
+  // Starta timeouten först
   startTimeout();
 
-  // Add event listeners for hover behavior on the modal content
-  modalContent.addEventListener("mouseenter", clearTimeoutHandler); // Pause timer on hover
-  modalContent.addEventListener("mouseleave", startTimeout); // Resume timer when mouse leaves
+  // Lägg till händelseavlyssnare för hovringsbeteende på det modala innehållet
+  modalContent.addEventListener("mouseenter", clearTimeoutHandler); // Pausa timern om elementet hoveras
+  modalContent.addEventListener("mouseleave", startTimeout); // återuppta timern när elementet inte längre hoveras
 }
 
 function hideFeedbackMessage() {
   const modal = document.getElementById("feedbackModal");
   if (modal) {
     modal.classList.add("opacity-0", "transition-opacity", "duration-300"); // Fade out
-    setTimeout(() => modal.remove(), 300); // Remove after fade-out
+    setTimeout(() => modal.remove(), 300); // ta bort efter fade out
   }
 }
 
