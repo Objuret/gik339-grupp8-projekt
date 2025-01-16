@@ -142,7 +142,7 @@ function renderProducts(products) {
 
     group.items.forEach((item) => {
       html += `
-      <li class="bg-${group.color}-200 text-black p-4 rounded-md border border-gray-300 w-full sm:w-1/2 md:w-1/3 lg:w-1/4">
+      <li class="bg-${group.color}-200 text-black p-4 rounded-md border border-gray-300 w-full sm:w-1/2 md:w-1/3 lg:w-1/3">
       <h3 class="font-semibold">${item.productName}</h3>
       <p>Pris: ${item.price} kr</p>
       <div class="flex flex-col sm:flex-row justify-between mt-2 gap-2">
