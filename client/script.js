@@ -48,6 +48,7 @@ function populateColorDropdown() {
 
 // Huvudfunktion: Hämtar och renderar all data
 async function fetchAllData() {
+  // console.log("Fetching all data...");
   await Promise.all([
     fetchData(productsUrl, (products) => {
       console.log("Fetched products:", products); // Logga hämtade produkter
@@ -85,6 +86,7 @@ document.getElementById("cancelEditButton").addEventListener("click", () => {
 
 async function fetchData(url, callback) {
   try {
+    console.log(`Fetching data from: ${url}`);
     const response = await fetch(url);
     const data = await response.json();
     if (callback) callback(data);

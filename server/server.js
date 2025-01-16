@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /* Importera npm-paket sqlite3 med hjälp av require() och lagrar i variabeln sqlite */
 const sqlite = require("sqlite3").verbose();
 /* Skapar ny koppling till databas-fil som skapades tidigare. */
@@ -6,6 +7,12 @@ const db = new sqlite.Database("./gik339.db");
 /* Importerar npm-paket express och lagrar i variabeln express */
 const express = require("express");
 /* Skapar server med hjälp av express */
+=======
+/* Importera moduler och instanser */
+const sqlite = require("sqlite3").verbose();
+const db = new sqlite.Database("./gik339.db");
+const express = require("express");
+>>>>>>> 718cb3d3c2692148a166c72b575d272bef726e19
 const server = express();
 
 /* Sätter konfiguration på servern */
@@ -90,10 +97,23 @@ server.delete("/categories/:id", (req, res) => {
 
   db.serialize(() => {
     db.run(deleteProductsSQL, [id], function (err) {
+<<<<<<< HEAD
       if (err) return res.status(500).send("Fel vid borttagning av produkter: " + err.message);
 
       db.run(deleteCategorySQL, [id], function (err) {
         if (err) return res.status(500).send("Fel vid borttagning av kategori: " + err.message);
+=======
+      if (err)
+        return res
+          .status(500)
+          .send("Fel vid borttagning av produkter: " + err.message);
+
+      db.run(deleteCategorySQL, [id], function (err) {
+        if (err)
+          return res
+            .status(500)
+            .send("Fel vid borttagning av kategori: " + err.message);
+>>>>>>> 718cb3d3c2692148a166c72b575d272bef726e19
         res.send("Kategorin och dess produkter har tagits bort.");
       });
     });
@@ -107,7 +127,14 @@ server.put("/categories/:id", (req, res) => {
   const sql = `UPDATE categories SET categoryName = ?, color = ? WHERE categoryId = ?`;
 
   db.run(sql, [categoryName, color, id], function (err) {
+<<<<<<< HEAD
     if (err) return res.status(500).send("Fel vid uppdatering av kategori: " + err.message);
+=======
+    if (err)
+      return res
+        .status(500)
+        .send("Fel vid uppdatering av kategori: " + err.message);
+>>>>>>> 718cb3d3c2692148a166c72b575d272bef726e19
     res.send("Kategorin har uppdaterats.");
   });
 });
@@ -175,10 +202,16 @@ server.post("/products", (req, res) => {
 server.put("/products/:id", (req, res) => {
   const { id } = req.params;
   const { productName, price, categoryId } = req.body;
+  // console.log(`PUT request received for product ID: ${id}`);
+  // console.log("Request body:", req.body);
+
   const sql = `UPDATE products SET productName = ?, price = ?, categoryId = ? WHERE productId = ?`;
+  // console.log("Executing SQL query:", sql);
+  // console.log("Query parameters:", [productName, price, categoryId, id]);
 
   db.run(sql, [productName, price, categoryId, id], (err) => {
     if (err) {
+      console.error("SQL Error:", err.message); // Logga SQL-fel
       res.status(500).send(err);
     } else {
       res.send("Produkten uppdaterades");
