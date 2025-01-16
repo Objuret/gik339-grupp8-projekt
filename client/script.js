@@ -1,4 +1,3 @@
-//const url = 'http://localhost:3000/users';
 const productsUrl = "http://localhost:3000/products"; //Hantera produkter via API
 const categoriesUrl = "http://localhost:3000/categories"; //Hanterar kategorier via API
 
@@ -61,8 +60,6 @@ async function fetchAllData() {
   ]);
 }
 
-//Säkerställ att data hämtas via sidladdning
-window.addEventListener("load", fetchAllData);
 
 // Event Listeners
 productForm.addEventListener("submit", (e) => {
@@ -336,7 +333,7 @@ async function handleSubmit(e, url, dataBuilder) {
     // Kör callback för att uppdatera gränssnittet
     await fetchAllData();
 
-    // Återställ formulär och localStorage
+    // Återställ formulär
 
     e.target.reset();
     selectedID = null;
